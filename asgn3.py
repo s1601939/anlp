@@ -71,6 +71,35 @@ def cos_sim(v0,v1):
   v1mag = sqrt(sum(v1[k]**2 for k in v1.viewkeys()))
   return np.divide(numerator, np.multiply(v0mag, v1mag))
 
+def jaccard_similarity(d0,d1):
+  '''Compute the similarity between two words by Jaccard method
+  heavily inspired by 
+  http://dataconomy.com/implementing-the-five-most-popular-similarity-measures-in-python/
+  :type d0: dict
+  :type d1: dict
+  :param d0: co_occurence dictionary for word0
+  :param d1: co_occurence dictionary for word1
+
+  :rtype: float
+  :return: jaccard similarity ratio
+
+  The idea is to compute the similarity of the two words in a set-wise manner
+  by taking the cardinality of the intersection (words that occur in both sets)
+  and dividing by the cardinality of the union (all the unique words in each set)
+  '''
+  set0=set(d0.keys())
+  set1=set(d1.keys())
+  intersection_cardinality = len(set.intersection(*[set0,set1]))
+  union_cardinality = len(set.union(*[set0,set1]))
+  return intersection_cardinality/float(union_cardinality)
+
+def dice_coefficient(d0, d1):
+    """dice coefficient 2nt/na + nb."""
+    if not len(d0) or not len(d1): return 0.0
+    a_bigrams = set(d0.keys())
+    b_bigrams = set(d1.keys())
+    overlap = len(a_bigrams & b_bigrams)
+    return overlap * 2.0/(len(a_bigrams) + len(b_bigrams))
 
 def create_ppmi_vectors(wids, o_counts, co_counts, tot_count):
     '''Creates context vectors for all words, using PPMI.
@@ -178,3 +207,17 @@ c_sims = {(wid0,wid1): cos_sim(vectors[wid0],vectors[wid1]) for (wid0,wid1) in w
 
 print "Sort by cosine similarity"
 print_sorted_pairs(c_sims, o_counts)
+
+# compute jaccard similarities for all pairs we consider
+j_sims = {(wid0,wid1): jaccard_similarity(co_counts[wid0],co_counts[wid1])
+          for (wid0,wid1) in wid_pairs}
+
+print "Sort by Jaccard similarity"
+print_sorted_pairs(j_sims, o_counts)
+
+# compute dice_coefficient for all pairs we consider (based on unigram word sets)
+d_sims = {(wid0,wid1): dice_coefficient(co_counts[wid0],co_counts[wid1])
+          for (wid0,wid1) in wid_pairs}
+
+print "Sort by dice_coefficient"
+print_sorted_pairs(d_sims, o_counts)
