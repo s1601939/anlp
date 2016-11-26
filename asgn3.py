@@ -340,4 +340,8 @@ def get_similarity(wlist,functionlist=[cos_sim,jaccard_similarity,dice_coefficie
   (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", different_wids)
   print("Creating word vectors...")
   different_vectors = create_ppmi_vectors(different_wids, o_counts, co_counts, N)
-
+  results = []
+  for method in functionlist:
+    results.append(('{}'.format(method),{(wid0,wid1): method(different_vectors[wid0],different_vectors[wid1]) 
+          for (wid0,wid1) in similar_wid_pairs}))
+  return results
