@@ -1,3 +1,22 @@
+'''
+Coursework Assignment 3
+ANLP 2016, Univeristy of Edinburgh
+Author: Stephen Graham (s1601939), Ziwei Wang (s1600429)
+Date: 2016-11-26
+Some code was provided for us as framework material
+
+Portions of this work adapted from other work released under 
+Creative Commons as described here and marked with #### code quote #### 
+markers in-line.
+
+  Author: Luke Shrimpton, Sharon Goldwater, Henry Thompson
+  Date: 2014-11-01, 2016-11-08
+  Copyright: This work is licensed under a Creative Commons
+  Attribution-NonCommercial 4.0 International License
+  (http://creativecommons.org/licenses/by-nc/4.0/): You may re-use,
+  redistribute, or modify this work for non-commercial purposes provided
+  you retain attribution to any previous author(s).
+'''
 from __future__ import division
 from math import log,sqrt
 import operator
@@ -94,32 +113,39 @@ def jaccard_similarity(d0,d1):
   return intersection_cardinality/float(union_cardinality)
 
 def dice_coefficient(d0, d1):
-    """dice coefficient 2nt/na + nb."""
-    if not len(d0) or not len(d1): return 0.0
-    a_bigrams = set(d0.keys())
-    b_bigrams = set(d1.keys())
-    overlap = len(a_bigrams & b_bigrams)
-    return overlap * 2.0/(len(a_bigrams) + len(b_bigrams))
+  """dice coefficient 2nt/na + nb."""
+  if not len(d0) or not len(d1): return 0.0
+  a_bigrams = set(d0.keys())
+  b_bigrams = set(d1.keys())
+  overlap = len(a_bigrams & b_bigrams)
+  return overlap * 2.0/(len(a_bigrams) + len(b_bigrams))
 
 def create_ppmi_vectors(wids, o_counts, co_counts, tot_count):
-    '''Creates context vectors for all words, using PPMI.
-    These should be sparse vectors.
+  '''Creates context vectors for all words, using PPMI.
+  These should be sparse vectors.
 
-    :type wids: list of int
-    :type o_counts: dict
-    :type co_counts: dict of dict
-    :type tot_count: int
-    :param wids: the ids of the words to make vectors for
-    :param o_counts: the counts of each word (indexed by id)
-    :param co_counts: the cooccurrence counts of each word pair (indexed by ids)
-    :param tot_count: the total number of observations
-    :rtype: dict
-    :return: the context vectors, indexed by word id
-    '''
-    vectors = {}
-    for wid0 in wids:
-        vectors[wid0] = co_counts[wid0]
-    return vectors
+  :type wids: list of int
+  :type o_counts: dict
+  :type co_counts: dict of dict
+  :type tot_count: int
+  :param wids: the ids of the words to make vectors for
+  :param o_counts: the counts of each word (indexed by id)
+  :param co_counts: the cooccurrence counts of each word pair (indexed by ids)
+  :param tot_count: the total number of observations
+  :rtype: dict
+  :return: the context vectors, indexed by word id
+ 
+  PMI(co_counts[targetid][posid], o_counts[targetid], o_counts[posid], N)
+  '''
+  vectors = {}
+  for wid0 in wids:
+      # This works with raw counts, but PMI is probably better.
+      # vectors[wid0] = co_counts[wid0]
+      ## PMI(co_counts[targetid][posid], o_counts[targetid], o_counts[posid], tot_count)
+      ## Dict comprehesion: { k:v for k, v in hand.items() if v }
+      vectors[wid0] = {k:v for k,v in ((posid,PMI( co_counts[wid0][posid], o_counts[wid0], o_counts[posid], tot_count))
+             for posid in co_counts[wid0].keys()) if v > 0}
+  return vectors
 
 def read_counts(filename, wids):
   '''Reads the counts from file. It returns counts for all words, but to
@@ -176,20 +202,31 @@ def make_pairs(items):
   '''
   return [(x, y) for x in items for y in items if x < y]
 
-# Load the data
-fp = open("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/wid_word");
-wid2word={}
-word2wid={}
-for line in fp:
-  widstr,word=line.rstrip().split("\t")
-  wid=int(widstr)
-  wid2word[wid]=word
-  word2wid[word]=wid
 
 
-test_words = ["cat", "dog", "mouse", "computer","@justinbieber"]
+test_words = ["cat", "dog", "mouse", "computer","@justinbieber","#egypt"]
+similar_words = ["computer","machine","mac","pc","mouse","phone"]
 stemmed_words = [tw_stemmer(w) for w in test_words]
-all_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
+
+print("Getting all the word id's as a set")
+try:
+  # At this point we need word2wid
+  all_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
+except NameError:
+  # but if we forgot to run the loader in ipython first...
+  # Load the data
+  # From code by Luke Shrimpton, Sharon Goldwater, Henry Thompson
+  #### begin code quote ####
+  fp = open("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/wid_word");
+  wid2word={}
+  word2wid={}
+  for line in fp:
+    widstr,word=line.rstrip().split("\t")
+    wid=int(widstr)
+    wid2word[wid]=word
+    word2wid[word]=wid
+  #### end code quote ####
+  all_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
 
 # you could choose to just select some pairs and add them by hand instead
 # but here we automatically create all pairs 
@@ -200,24 +237,107 @@ wid_pairs = make_pairs(all_wids)
 (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", all_wids)
 
 #make the word vectors
+print("Creating word vectors...")
 vectors = create_ppmi_vectors(all_wids, o_counts, co_counts, N)
 
+####################################
+# demonstrate with cosine similarity
+####################################
 # compute cosine similarites for all pairs we consider
 c_sims = {(wid0,wid1): cos_sim(vectors[wid0],vectors[wid1]) for (wid0,wid1) in wid_pairs}
 
 print "Sort by cosine similarity"
 print_sorted_pairs(c_sims, o_counts)
 
+
+#####################################
+# demonstrate with jaccard similarity
+#####################################
 # compute jaccard similarities for all pairs we consider
-j_sims = {(wid0,wid1): jaccard_similarity(co_counts[wid0],co_counts[wid1])
+j_sims = {(wid0,wid1): jaccard_similarity(vectors[wid0],vectors[wid1])
           for (wid0,wid1) in wid_pairs}
 
 print "Sort by Jaccard similarity"
 print_sorted_pairs(j_sims, o_counts)
 
+###################################
+# demonstrate with dice_coefficient
+###################################
 # compute dice_coefficient for all pairs we consider (based on unigram word sets)
 d_sims = {(wid0,wid1): dice_coefficient(co_counts[wid0],co_counts[wid1])
           for (wid0,wid1) in wid_pairs}
 
 print "Sort by dice_coefficient"
 print_sorted_pairs(d_sims, o_counts)
+
+##------------------------ BEGIN INVESTIGATIONS ----------------------------##
+# Define our words to evaluate
+print("choosing new words with suspected similarity")
+similar_words = ["computer","machine","mac","pc","mouse","phone"]
+stemmed_words = [tw_stemmer(w) for w in similar_words]
+similar_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
+print("making the pairs")
+similar_wid_pairs = make_pairs(similar_wids)
+(o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", similar_wids)
+print("Creating word vectors...")
+similar_vectors = create_ppmi_vectors(similar_wids, o_counts, co_counts, N)
+
+# run each of the methods
+c_sims = {(wid0,wid1): cos_sim(similar_vectors[wid0],similar_vectors[wid1]) 
+          for (wid0,wid1) in similar_wid_pairs}
+j_sims = {(wid0,wid1): jaccard_similarity(similar_vectors[wid0],similar_vectors[wid1])
+          for (wid0,wid1) in similar_wid_pairs}
+d_sims = {(wid0,wid1): dice_coefficient(similar_vectors[wid0],similar_vectors[wid1])
+          for (wid0,wid1) in similar_wid_pairs}
+
+# save raw data results
+print "Sort by cosine similarity"
+print_sorted_pairs(c_sims, o_counts)
+print "Sort by Jaccard similarity"
+print_sorted_pairs(j_sims, o_counts)
+print "Sort by dice_coefficient"
+print_sorted_pairs(d_sims, o_counts)
+
+# graph the results (and save to file)
+
+
+##------------------------ BEGIN INVESTIGATIONS ----------------------------##
+# Define our words to evaluate
+print("choosing new words with suspected difference")
+different_words = ["cat", "shovel", "car", "#egypt", "trump", "easy"]
+stemmed_words = [tw_stemmer(w) for w in different_words]
+different_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
+print("making the pairs")
+similar_wid_pairs = make_pairs(different_wids)
+(o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", different_wids)
+print("Creating word vectors...")
+different_vectors = create_ppmi_vectors(different_wids, o_counts, co_counts, N)
+
+# run each of the methods
+c_sims = {(wid0,wid1): cos_sim(different_vectors[wid0],different_vectors[wid1]) 
+          for (wid0,wid1) in similar_wid_pairs}
+j_sims = {(wid0,wid1): jaccard_similarity(different_vectors[wid0],different_vectors[wid1])
+          for (wid0,wid1) in similar_wid_pairs}
+d_sims = {(wid0,wid1): dice_coefficient(different_vectors[wid0],different_vectors[wid1])
+          for (wid0,wid1) in similar_wid_pairs}
+
+# save raw data results
+print "Sort by cosine similarity"
+print_sorted_pairs(c_sims, o_counts)
+print "Sort by Jaccard similarity"
+print_sorted_pairs(j_sims, o_counts)
+print "Sort by dice_coefficient"
+print_sorted_pairs(d_sims, o_counts)
+
+# graph the results (and save to file)
+
+
+def get_similarity(wlist,functionlist=[cos_sim,jaccard_similarity,dice_coefficient]):
+  stemmed_words = [tw_stemmer(w) for w in wlist]
+  different_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
+  print("making the pairs")
+  similar_wid_pairs = make_pairs(different_wids)
+  (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", different_wids)
+  print("Creating word vectors...")
+  different_vectors = create_ppmi_vectors(different_wids, o_counts, co_counts, N)
+
