@@ -61,7 +61,27 @@ def PMI(c_xy, c_x, c_y, N):
   :return: the pmi value
 
   '''
-  return log(((N * c_xy) / (c_x * c_y)), 2) # you need to fix this
+  return log(((N * c_xy) / (c_x * c_y)), 2) 
+
+def PMI_alpha(c_xy, c_x, c_y, N, alpha=0.75):
+  '''Compute the pointwise mutual information using cooccurrence counts.
+
+  :type c_xy: int 
+  :type c_x: int 
+  :type c_y: int 
+  :type N: int
+  :param c_xy: coocurrence count of x and y
+  :param c_x: occurrence count of x
+  :param c_y: occurrence count of y
+  :param N: total observation count
+  :rtype: float
+  :return: the pmi value
+
+  '''
+  numer = c_xy/N
+  denom = c_x/N * (c_y**alpha/N**alpha)
+  return log(numer/denom, 2)
+
 
 #Do a simple error check using value computed by hand
 if(PMI(2,4,3,12) != 1): # these numbers are from our y,z example
@@ -143,9 +163,37 @@ def create_ppmi_vectors(wids, o_counts, co_counts, tot_count):
       # vectors[wid0] = co_counts[wid0]
       ## PMI(co_counts[targetid][posid], o_counts[targetid], o_counts[posid], tot_count)
       ## Dict comprehesion: { k:v for k, v in hand.items() if v }
-      vectors[wid0] = {k:v for k,v in ((posid,PMI( co_counts[wid0][posid], o_counts[wid0], o_counts[posid], tot_count))
-             for posid in co_counts[wid0].keys()) if v > 0}
+      vectors[wid0] = {k:v for k,v in ((posid,max(PMI( co_counts[wid0][posid], o_counts[wid0], o_counts[posid], tot_count),0))
+             for posid in co_counts[wid0].keys())}
   return vectors
+
+def create_ppmi_vectors_alpha(wids,o_counts, co_counts, tot_count, alpha=0.75):
+  '''Creates context vectors for all words, using PPMI-alpha.
+  These should be sparse vectors.
+
+  :type wids: list of int
+  :type o_counts: dict
+  :type co_counts: dict of dict
+  :type tot_count: int
+  :param wids: the ids of the words to make vectors for
+  :param o_counts: the counts of each word (indexed by id)
+  :param co_counts: the cooccurrence counts of each word pair (indexed by ids)
+  :param tot_count: the total number of observations
+  :rtype: dict
+  :return: the context vectors, indexed by word id
+ 
+  PMI(co_counts[targetid][posid], o_counts[targetid], o_counts[posid], N)
+  '''
+  vectors = {}
+  for wid0 in wids:
+      # This works with raw counts, but PMI is probably better.
+      # vectors[wid0] = co_counts[wid0]
+      ## PMI(co_counts[targetid][posid], o_counts[targetid], o_counts[posid], tot_count)
+      ## Dict comprehesion: { k:v for k, v in hand.items() if v }
+      vectors[wid0] = {k:v for k,v in ((posid,max(PMI_alpha( co_counts[wid0][posid], o_counts[wid0], o_counts[posid], tot_count, alpha),0))
+             for posid in co_counts[wid0].keys())}
+  return vectors
+
 
 def read_counts(filename, wids):
   '''Reads the counts from file. It returns counts for all words, but to
@@ -239,6 +287,7 @@ wid_pairs = make_pairs(all_wids)
 #make the word vectors
 print("Creating word vectors...")
 vectors = create_ppmi_vectors(all_wids, o_counts, co_counts, N)
+vectors_alpha = create_ppmi_vectors_alpha(all_wids, o_counts, co_counts, N)
 
 ####################################
 # demonstrate with cosine similarity
@@ -248,6 +297,11 @@ c_sims = {(wid0,wid1): cos_sim(vectors[wid0],vectors[wid1]) for (wid0,wid1) in w
 
 print "Sort by cosine similarity"
 print_sorted_pairs(c_sims, o_counts)
+
+
+c_sims_alpha = {(wid0,wid1): cos_sim(vectors_alpha[wid0],vectors_alpha[wid1]) for (wid0,wid1) in wid_pairs}
+print "Sort by cosine similarity (ppmi_alpha)"
+print_sorted_pairs(c_sims_alpha, o_counts)
 
 
 #####################################
@@ -281,9 +335,12 @@ similar_wid_pairs = make_pairs(similar_wids)
 (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", similar_wids)
 print("Creating word vectors...")
 similar_vectors = create_ppmi_vectors(similar_wids, o_counts, co_counts, N)
+similar_vectors_alpha = create_ppmi_vectors_alpha(similar_wids, o_counts, co_counts, N)
 
 # run each of the methods
 c_sims = {(wid0,wid1): cos_sim(similar_vectors[wid0],similar_vectors[wid1]) 
+          for (wid0,wid1) in similar_wid_pairs}
+c_sims_alpha =  {(wid0,wid1): cos_sim(similar_vectors_alpha[wid0],similar_vectors_alpha[wid1]) 
           for (wid0,wid1) in similar_wid_pairs}
 j_sims = {(wid0,wid1): jaccard_similarity(similar_vectors[wid0],similar_vectors[wid1])
           for (wid0,wid1) in similar_wid_pairs}
@@ -293,6 +350,8 @@ d_sims = {(wid0,wid1): dice_coefficient(similar_vectors[wid0],similar_vectors[wi
 # save raw data results
 print "Sort by cosine similarity"
 print_sorted_pairs(c_sims, o_counts)
+print "Sort by cosine similarity (ppmi_alpha)"
+print_sorted_pairs(c_sims_alpha, o_counts)
 print "Sort by Jaccard similarity"
 print_sorted_pairs(j_sims, o_counts)
 print "Sort by dice_coefficient"
@@ -312,9 +371,12 @@ similar_wid_pairs = make_pairs(different_wids)
 (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", different_wids)
 print("Creating word vectors...")
 different_vectors = create_ppmi_vectors(different_wids, o_counts, co_counts, N)
+different_vectors_alpha = create_ppmi_vectors_alpha(different_wids, o_counts, co_counts, N)
 
 # run each of the methods
 c_sims = {(wid0,wid1): cos_sim(different_vectors[wid0],different_vectors[wid1]) 
+          for (wid0,wid1) in similar_wid_pairs}
+c_sims_alpha =  {(wid0,wid1): cos_sim(different_vectors_alpha[wid0],different_vectors_alpha[wid1]) 
           for (wid0,wid1) in similar_wid_pairs}
 j_sims = {(wid0,wid1): jaccard_similarity(different_vectors[wid0],different_vectors[wid1])
           for (wid0,wid1) in similar_wid_pairs}
@@ -324,6 +386,8 @@ d_sims = {(wid0,wid1): dice_coefficient(different_vectors[wid0],different_vector
 # save raw data results
 print "Sort by cosine similarity"
 print_sorted_pairs(c_sims, o_counts)
+print "Sort by cosine similarity (ppmi_alpha)"
+print_sorted_pairs(c_sims_alpha, o_counts)
 print "Sort by Jaccard similarity"
 print_sorted_pairs(j_sims, o_counts)
 print "Sort by dice_coefficient"
@@ -332,7 +396,7 @@ print_sorted_pairs(d_sims, o_counts)
 # graph the results (and save to file)
 
 
-def get_similarity(wlist,functionlist=[cos_sim,jaccard_similarity,dice_coefficient]):
+def get_similarity(wlist,functionlist=[cos_sim,cos_sim_alpha,jaccard_similarity,dice_coefficient]):
   stemmed_words = [tw_stemmer(w) for w in wlist]
   different_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
   print("making the pairs")
