@@ -396,7 +396,7 @@ print_sorted_pairs(d_sims, o_counts)
 # graph the results (and save to file)
 
 
-def get_similarity(wlist,functionlist=[cos_sim,cos_sim_alpha,jaccard_similarity,dice_coefficient]):
+def get_similarity(wlist,functionlist=[cos_sim,jaccard_similarity,dice_coefficient]):
   stemmed_words = [tw_stemmer(w) for w in wlist]
   different_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
   print("making the pairs")
