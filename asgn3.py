@@ -24,6 +24,8 @@ from nltk.stem import *
 from nltk.stem.porter import *
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+
 
 STEMMER = PorterStemmer()
 
@@ -238,6 +240,28 @@ def print_sorted_pairs(similarities, o_counts, first=0, last=100):
     word_pair = (wid2word[pair[0]], wid2word[pair[1]])
     print "%0.2f\t%-30s\t%d\t%d" % (similarities[pair],word_pair,o_counts[pair[0]],o_counts[pair[1]])
 
+def get_plot_data(similarities, o_counts, first=0, last=100):
+  '''Sorts the pairs of words by their similarity scores and prints
+  out the sorted list from index first to last, along with the
+  counts of each word in each pair.
+
+  :type similarities: dict 
+  :type o_counts: dict
+  :type first: int
+  :type last: int
+  :param similarities: the word id pairs (keys) with similarity scores (values)
+  :param o_counts: the counts of each word id
+  :param first: index to start printing from
+  :param last: index to stop printing
+  :return: list of word pair similarity data for plotting
+  '''
+  plot_data = []
+  if first < 0: last = len(similarities)
+  for pair in sorted(similarities.keys(), key=lambda x: similarities[x], reverse = True)[first:last]:
+    word_pair = (wid2word[pair[0]], wid2word[pair[1]])
+    plot_data.append([similarities[pair],word_pair,o_counts[pair[0]],o_counts[pair[1]]])
+  return plot_data
+
 def make_pairs(items):
   '''Takes a list of items and creates a list of the unique pairs
   with each pair sorted, so that if (a, b) is a pair, (b, a) is not
@@ -252,7 +276,7 @@ def make_pairs(items):
 
 
 
-test_words = ["cat", "dog", "mouse", "computer","@justinbieber","#egypt"]
+test_words = ["cat", "dog", "mouse", "computer","@justinbieber"]
 similar_words = ["computer","machine","mac","pc","mouse","phone"]
 stemmed_words = [tw_stemmer(w) for w in test_words]
 
@@ -409,3 +433,15 @@ def get_similarity(wlist,functionlist=[cos_sim,jaccard_similarity,dice_coefficie
     results.append(('{}'.format(method),{(wid0,wid1): method(different_vectors[wid0],different_vectors[wid1]) 
           for (wid0,wid1) in similar_wid_pairs}))
   return results
+
+def plot_results(results,legend):
+  fig = plt.figure()
+  ax = fig.add_subplot(111)
+
+  
+  for r in results:
+    to_plot = pd.DataFrame(get_plot_data(r,o_counts))
+    ax.plot(range(len(to_plot[0])),to_plot[0])
+    ax.set_xticklabels(to_plot[1],rotation='vertical')
+  plt.legend(legend)
+  plt.show()
