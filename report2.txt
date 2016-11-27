@@ -1,0 +1,181 @@
+PMI check passed
+Getting all the word id's as a set
+Creating word vectors...
+Sort by cosine similarity
+0.36	('cat', 'dog')                	169733	287114
+0.17	('comput', 'mous')            	160828	22265
+0.12	('cat', 'mous')               	169733	22265
+0.09	('mous', 'dog')               	22265	287114
+0.07	('cat', 'comput')             	169733	160828
+0.06	('comput', 'dog')             	160828	287114
+0.02	('@justinbieber', 'dog')      	703307	287114
+0.01	('cat', '@justinbieber')      	169733	703307
+0.01	('@justinbieber', 'comput')   	703307	160828
+0.01	('@justinbieber', 'mous')     	703307	22265
+Sort by cosine similarity (ppmi_alpha)
+0.20	('cat', 'dog')                	169733	287114
+0.06	('comput', 'mous')            	160828	22265
+0.02	('cat', 'mous')               	169733	22265
+0.01	('cat', 'comput')             	169733	160828
+0.01	('mous', 'dog')               	22265	287114
+0.00	('cat', '@justinbieber')      	169733	703307
+0.00	('@justinbieber', 'mous')     	703307	22265
+0.00	('@justinbieber', 'dog')      	703307	287114
+0.00	('comput', 'dog')             	160828	287114
+0.00	('@justinbieber', 'comput')   	703307	160828
+Sort by Jaccard similarity
+0.58	('cat', 'dog')                	169733	287114
+0.47	('cat', 'comput')             	169733	160828
+0.42	('comput', 'dog')             	160828	287114
+0.32	('cat', '@justinbieber')      	169733	703307
+0.31	('@justinbieber', 'dog')      	703307	287114
+0.29	('@justinbieber', 'comput')   	703307	160828
+0.26	('comput', 'mous')            	160828	22265
+0.23	('cat', 'mous')               	169733	22265
+0.17	('mous', 'dog')               	22265	287114
+0.16	('@justinbieber', 'mous')     	703307	22265
+Sort by dice_coefficient
+0.74	('cat', 'dog')                	169733	287114
+0.64	('cat', 'comput')             	169733	160828
+0.59	('comput', 'dog')             	160828	287114
+0.48	('cat', '@justinbieber')      	169733	703307
+0.47	('@justinbieber', 'dog')      	703307	287114
+0.45	('@justinbieber', 'comput')   	703307	160828
+0.41	('comput', 'mous')            	160828	22265
+0.37	('cat', 'mous')               	169733	22265
+0.29	('mous', 'dog')               	22265	287114
+0.27	('@justinbieber', 'mous')     	703307	22265
+choosing new words with suspected similarity
+making the pairs
+Creating word vectors...
+Sort by cosine similarity
+0.40	('comput', 'pc')              	160828	62102
+0.29	('pc', 'mac')                 	62102	93530
+0.27	('comput', 'mac')             	160828	93530
+0.20	('comput', 'machin')          	160828	69862
+0.18	('pc', 'machin')              	62102	69862
+0.18	('pc', 'mous')                	62102	22265
+0.17	('comput', 'phone')           	160828	835985
+0.17	('comput', 'mous')            	160828	22265
+0.16	('mac', 'machin')             	93530	69862
+0.15	('mous', 'mac')               	22265	93530
+0.14	('mous', 'machin')            	22265	69862
+0.12	('pc', 'phone')               	62102	835985
+0.11	('phone', 'mac')              	835985	93530
+0.07	('mous', 'phone')             	22265	835985
+0.07	('phone', 'machin')           	835985	69862
+Sort by cosine similarity (ppmi_alpha)
+0.26	('comput', 'pc')              	160828	62102
+0.12	('pc', 'mac')                 	62102	93530
+0.08	('pc', 'mous')                	62102	22265
+0.08	('comput', 'mac')             	160828	93530
+0.07	('mous', 'mac')               	22265	93530
+0.06	('comput', 'mous')            	160828	22265
+0.02	('pc', 'phone')               	62102	835985
+0.02	('mous', 'phone')             	22265	835985
+0.02	('pc', 'machin')              	62102	69862
+0.02	('comput', 'machin')          	160828	69862
+0.01	('phone', 'mac')              	835985	93530
+0.01	('comput', 'phone')           	160828	835985
+0.01	('phone', 'machin')           	835985	69862
+0.01	('mac', 'machin')             	93530	69862
+0.01	('mous', 'machin')            	22265	69862
+Sort by Jaccard similarity
+0.50	('comput', 'mac')             	160828	93530
+0.50	('mac', 'machin')             	93530	69862
+0.49	('pc', 'mac')                 	62102	93530
+0.48	('comput', 'machin')          	160828	69862
+0.47	('comput', 'pc')              	160828	62102
+0.47	('pc', 'machin')              	62102	69862
+0.35	('comput', 'phone')           	160828	835985
+0.35	('mous', 'machin')            	22265	69862
+0.33	('pc', 'mous')                	62102	22265
+0.31	('mous', 'mac')               	22265	93530
+0.27	('phone', 'mac')              	835985	93530
+0.26	('comput', 'mous')            	160828	22265
+0.25	('phone', 'machin')           	835985	69862
+0.23	('pc', 'phone')               	62102	835985
+0.11	('mous', 'phone')             	22265	835985
+Sort by dice_coefficient
+0.67	('comput', 'mac')             	160828	93530
+0.67	('mac', 'machin')             	93530	69862
+0.66	('pc', 'mac')                 	62102	93530
+0.65	('comput', 'machin')          	160828	69862
+0.64	('comput', 'pc')              	160828	62102
+0.64	('pc', 'machin')              	62102	69862
+0.52	('comput', 'phone')           	160828	835985
+0.51	('mous', 'machin')            	22265	69862
+0.50	('pc', 'mous')                	62102	22265
+0.47	('mous', 'mac')               	22265	93530
+0.43	('phone', 'mac')              	835985	93530
+0.41	('comput', 'mous')            	160828	22265
+0.40	('phone', 'machin')           	835985	69862
+0.37	('pc', 'phone')               	62102	835985
+0.20	('mous', 'phone')             	22265	835985
+choosing new words with suspected difference
+making the pairs
+Creating word vectors...
+Sort by cosine similarity
+0.08	('cat', 'car')                	169733	508575
+0.08	('#egypt', 'trump')           	14887	25548
+0.08	('easi', 'car')               	271970	508575
+0.06	('cat', 'easi')               	169733	271970
+0.05	('cat', 'shovel')             	169733	3911
+0.05	('car', 'shovel')             	508575	3911
+0.05	('easi', 'trump')             	271970	25548
+0.04	('cat', 'trump')              	169733	25548
+0.04	('car', 'trump')              	508575	25548
+0.04	('trump', 'shovel')           	25548	3911
+0.03	('car', '#egypt')             	508575	14887
+0.03	('easi', 'shovel')            	271970	3911
+0.03	('easi', '#egypt')            	271970	14887
+0.02	('cat', '#egypt')             	169733	14887
+0.02	('#egypt', 'shovel')          	14887	3911
+Sort by cosine similarity (ppmi_alpha)
+0.01	('car', 'shovel')             	508575	3911
+0.01	('#egypt', 'trump')           	14887	25548
+0.01	('trump', 'shovel')           	25548	3911
+0.00	('easi', 'car')               	271970	508575
+0.00	('#egypt', 'shovel')          	14887	3911
+0.00	('easi', 'trump')             	271970	25548
+0.00	('car', '#egypt')             	508575	14887
+0.00	('cat', 'shovel')             	169733	3911
+0.00	('cat', 'easi')               	169733	271970
+0.00	('car', 'trump')              	508575	25548
+0.00	('easi', 'shovel')            	271970	3911
+0.00	('cat', 'car')                	169733	508575
+0.00	('easi', '#egypt')            	271970	14887
+0.00	('cat', '#egypt')             	169733	14887
+0.00	('cat', 'trump')              	169733	25548
+Sort by Jaccard similarity
+0.51	('cat', 'easi')               	169733	271970
+0.44	('easi', 'car')               	271970	508575
+0.41	('cat', 'car')                	169733	508575
+0.31	('#egypt', 'trump')           	14887	25548
+0.23	('cat', 'trump')              	169733	25548
+0.20	('easi', 'trump')             	271970	25548
+0.15	('cat', '#egypt')             	169733	14887
+0.14	('trump', 'shovel')           	25548	3911
+0.13	('easi', '#egypt')            	271970	14887
+0.13	('car', 'trump')              	508575	25548
+0.13	('#egypt', 'shovel')          	14887	3911
+0.09	('car', '#egypt')             	508575	14887
+0.05	('cat', 'shovel')             	169733	3911
+0.04	('easi', 'shovel')            	271970	3911
+0.03	('car', 'shovel')             	508575	3911
+Sort by dice_coefficient
+0.68	('cat', 'easi')               	169733	271970
+0.61	('easi', 'car')               	271970	508575
+0.58	('cat', 'car')                	169733	508575
+0.47	('#egypt', 'trump')           	14887	25548
+0.37	('cat', 'trump')              	169733	25548
+0.33	('easi', 'trump')             	271970	25548
+0.26	('cat', '#egypt')             	169733	14887
+0.24	('trump', 'shovel')           	25548	3911
+0.23	('easi', '#egypt')            	271970	14887
+0.22	('car', 'trump')              	508575	25548
+0.22	('#egypt', 'shovel')          	14887	3911
+0.16	('car', '#egypt')             	508575	14887
+0.09	('cat', 'shovel')             	169733	3911
+0.08	('easi', 'shovel')            	271970	3911
+0.05	('car', 'shovel')             	508575	3911
