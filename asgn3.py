@@ -1,7 +1,7 @@
 '''
 Coursework Assignment 3
 ANLP 2016, Univeristy of Edinburgh
-Author: Stephen Graham (s1601939), Ziwei Wang (s1600429)
+Authors: s1601939, s1600429 
 Date: 2016-11-26
 Some code was provided for us as framework material
 
