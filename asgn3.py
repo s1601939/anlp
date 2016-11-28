@@ -274,17 +274,19 @@ def make_pairs(items):
   '''
   return [(x, y) for x in items for y in items if x < y]
 
-def test_sims(word_set, description='*DEFAULT TEST NAME*', stemmed=True):
+def test_sims(word_set, description='*DEFAULT TEST NAME*'):
   '''Wrapper function to generate our set of similarity tests for a given set of words
 
   :type word_set: list
+  :type description: string
   :param word_set: list of words for generating distributional similarity indices
+  :param description: Name of the test to be displayed on the screen
   :return type: pandas Dataframe
   :return: the aggregated results test as dataframe keyed on word pairs
   '''
   print('Generating test: {}'.format(description))
 
-  if stemmed: stemmed_words = [tw_stemmer(w) for w in word_set]  # if stemming is requested (default)
+  stemmed_words = [tw_stemmer(w) for w in word_set]  # if stemming is requested (default)
   unique_wids = set([word2wid[x] for x in stemmed_words])        # remove duplicates (if any)
   wid_pairs = make_pairs(unique_wids)                            # create pairs 
   
