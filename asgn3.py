@@ -240,7 +240,7 @@ def print_sorted_pairs(similarities, o_counts, first=0, last=100):
     word_pair = (wid2word[pair[0]], wid2word[pair[1]])
     print "%0.2f\t%-30s\t%d\t%d" % (similarities[pair],word_pair,o_counts[pair[0]],o_counts[pair[1]])
 
-def get_plot_data(similarities, o_counts, first=0, last=100):
+def X_get_plot_data(similarities, o_counts, first=0, last=100):
   '''Sorts the pairs of words by their similarity scores and prints
   out the sorted list from index first to last, along with the
   counts of each word in each pair.
@@ -274,10 +274,94 @@ def make_pairs(items):
   '''
   return [(x, y) for x in items for y in items if x < y]
 
+def test_sims(word_set, description='*DEFAULT TEST NAME*', stemmed=True):
+  '''Wrapper function to generate our set of similarity tests for a given set of words
+
+  :type word_set: list
+  :param word_set: list of words for generating distributional similarity indices
+  :return type: pandas Dataframe
+  :return: the aggregated results test as dataframe keyed on word pairs
+  '''
+  print('Generating test: {}'.format(description))
+
+  if stemmed: stemmed_words = [tw_stemmer(w) for w in word_set]  # if stemming is requested (default)
+  unique_wids = set([word2wid[x] for x in stemmed_words])        # remove duplicates (if any)
+  wid_pairs = make_pairs(unique_wids)                            # create pairs 
+  
+  # generate the counts
+  (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", unique_wids)
 
 
+  print("Creating word vectors...")
+  vectors = create_ppmi_vectors(unique_wids, o_counts, co_counts, N)
+  vectors_alpha = create_ppmi_vectors_alpha(unique_wids, o_counts, co_counts, N)
+
+  # run each of the methods in our test space
+  c_sims       = {(wid0,wid1): cos_sim(vectors[wid0],vectors[wid1]) for (wid0,wid1) in wid_pairs}
+  c_sims_alpha = {(wid0,wid1): cos_sim(vectors_alpha[wid0],vectors_alpha[wid1]) for (wid0,wid1) in wid_pairs}
+  j_sims       = {(wid0,wid1): jaccard_similarity(vectors[wid0],vectors[wid1]) for (wid0,wid1) in wid_pairs}
+  d_sims       = {(wid0,wid1): dice_coefficient(vectors[wid0],vectors[wid1]) for (wid0,wid1) in wid_pairs}
+
+  # display raw data results
+  print "Sort by cosine similarity"
+  print_sorted_pairs(c_sims, o_counts)
+  print "Sort by cosine similarity (ppmi_alpha)"
+  print_sorted_pairs(c_sims_alpha, o_counts)
+  print "Sort by Jaccard similarity"
+  print_sorted_pairs(j_sims, o_counts)
+  print "Sort by dice_coefficient"
+  print_sorted_pairs(d_sims, o_counts)
+
+  # aggregate the results
+  # get all the keys from all the tests (because they might differ...)
+  result_keys = set(c_sims.keys() + c_sims_alpha.keys() + j_sims.keys() + d_sims.keys())
+  result_frame = pd.DataFrame(index = result_keys, 
+                              columns = ['word_pairs','c_sims','c_sims_alpha','j_sims','d_sims'])
+
+  # populate the frame
+  for k in result_keys: result_frame.set_value(k, 'word_pairs', (wid2word[k[0]], wid2word[k[1]]))
+  for k in c_sims.keys(): result_frame.set_value(k, 'c_sims', c_sims[k])
+  for k in c_sims_alpha.keys(): result_frame.set_value(k, 'c_sims_alpha', c_sims_alpha[k])
+  for k in j_sims.keys(): result_frame.set_value(k, 'j_sims', j_sims[k])
+  for k in d_sims.keys(): result_frame.set_value(k, 'd_sims', d_sims[k])
+
+  return result_frame
+  #-----------end test generator function -----------------------#
+
+def plot_results(results,legend,title='*SET TITLE*',figname=None):
+  ''' Plot a set of results on a single plot for a set of results
+  :type results: pandas DataFrame
+  :type legend: list
+  :type title: string
+  :type figname: string
+  :param results: dataframe indexed on word pairs with a column for each set of results
+  :param legend: List of friendly names of the tests in the results
+         e.g. ['Cosine (PPMI)','Cosine (PPMI-alpha)']
+  :param title: A string containing the figure title
+  :param figname: if not None, save the generated figure as a file named figname
+  :return None
+  '''
+
+  # Build an appropriate figure
+  fig = plt.figure()
+  ax = fig.add_subplot(111)
+
+  xlabels = results['word_pairs']
+  xrange = range(len(xlabels))
+  for c in [col for col in results.columns.values if col != 'word_pairs']:
+    ax.plot(xrange,results[c])
+    ax.set_xticklabels(xlabels,rotation=60)
+  plt.legend(legend)
+  plt.title(title)
+  plt.tight_layout()
+  plt.show()
+  if figname is not None: fig.savefig(figname)
+
+
+#--------------------------------------------------------------------#
+# begin the preliminary tests
+#--------------------------------------------------------------------#
 test_words = ["cat", "dog", "mouse", "computer","@justinbieber"]
-similar_words = ["computer","machine","mac","pc","mouse","phone"]
 stemmed_words = [tw_stemmer(w) for w in test_words]
 
 print("Getting all the word id's as a set")
@@ -349,99 +433,24 @@ print "Sort by dice_coefficient"
 print_sorted_pairs(d_sims, o_counts)
 
 ##------------------------ BEGIN INVESTIGATIONS ----------------------------##
-# Define our words to evaluate
-print("choosing new words with suspected similarity")
-similar_words = ["computer","machine","mac","pc","mouse","phone"]
-stemmed_words = [tw_stemmer(w) for w in similar_words]
-similar_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
-print("making the pairs")
-similar_wid_pairs = make_pairs(similar_wids)
-(o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", similar_wids)
-print("Creating word vectors...")
-similar_vectors = create_ppmi_vectors(similar_wids, o_counts, co_counts, N)
-similar_vectors_alpha = create_ppmi_vectors_alpha(similar_wids, o_counts, co_counts, N)
 
-# run each of the methods
-c_sims = {(wid0,wid1): cos_sim(similar_vectors[wid0],similar_vectors[wid1]) 
-          for (wid0,wid1) in similar_wid_pairs}
-c_sims_alpha =  {(wid0,wid1): cos_sim(similar_vectors_alpha[wid0],similar_vectors_alpha[wid1]) 
-          for (wid0,wid1) in similar_wid_pairs}
-j_sims = {(wid0,wid1): jaccard_similarity(similar_vectors[wid0],similar_vectors[wid1])
-          for (wid0,wid1) in similar_wid_pairs}
-d_sims = {(wid0,wid1): dice_coefficient(similar_vectors[wid0],similar_vectors[wid1])
-          for (wid0,wid1) in similar_wid_pairs}
+test_names = ['cos(PPMI)','cos(PPMI-alpha)','Jaccard','Dice']
+print('Beginning test series for these measures: {}'.format(test_names))
+print('-' * 40)
+# test 1
+test_positive = test_sims(["computer","machine","mac","pc","mouse","phone"],'Manually selected similar words')
+plot_results(test_positive.sort_values(['c_sims'],ascending=False), 
+             test_names, 
+             'Manually selected word pairs anticipated to be similar\nSorted by cos(PPMI)',
+             'test_pos_cos.svg')
 
-# save raw data results
-print "Sort by cosine similarity"
-print_sorted_pairs(c_sims, o_counts)
-print "Sort by cosine similarity (ppmi_alpha)"
-print_sorted_pairs(c_sims_alpha, o_counts)
-print "Sort by Jaccard similarity"
-print_sorted_pairs(j_sims, o_counts)
-print "Sort by dice_coefficient"
-print_sorted_pairs(d_sims, o_counts)
+#test 2
+test_negative = test_sims(["cat", "shovel", "car", "#egypt", "trump", "easy"],'Manually selected different words')
+plot_results(test_negative.sort_values(['c_sims'],ascending=False), 
+             test_names, 
+             'Manually selected word pairs anticipated to be dissimilar\nSorted by cos(PPMI)',
+             'test_neg_cos.svg')
+print('=' * 40)
+print('End of tests.')
 
-# graph the results (and save to file)
-
-
-##------------------------ BEGIN INVESTIGATIONS ----------------------------##
-# Define our words to evaluate
-print("choosing new words with suspected difference")
-different_words = ["cat", "shovel", "car", "#egypt", "trump", "easy"]
-stemmed_words = [tw_stemmer(w) for w in different_words]
-different_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
-print("making the pairs")
-similar_wid_pairs = make_pairs(different_wids)
-(o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", different_wids)
-print("Creating word vectors...")
-different_vectors = create_ppmi_vectors(different_wids, o_counts, co_counts, N)
-different_vectors_alpha = create_ppmi_vectors_alpha(different_wids, o_counts, co_counts, N)
-
-# run each of the methods
-c_sims = {(wid0,wid1): cos_sim(different_vectors[wid0],different_vectors[wid1]) 
-          for (wid0,wid1) in similar_wid_pairs}
-c_sims_alpha =  {(wid0,wid1): cos_sim(different_vectors_alpha[wid0],different_vectors_alpha[wid1]) 
-          for (wid0,wid1) in similar_wid_pairs}
-j_sims = {(wid0,wid1): jaccard_similarity(different_vectors[wid0],different_vectors[wid1])
-          for (wid0,wid1) in similar_wid_pairs}
-d_sims = {(wid0,wid1): dice_coefficient(different_vectors[wid0],different_vectors[wid1])
-          for (wid0,wid1) in similar_wid_pairs}
-
-# save raw data results
-print "Sort by cosine similarity"
-print_sorted_pairs(c_sims, o_counts)
-print "Sort by cosine similarity (ppmi_alpha)"
-print_sorted_pairs(c_sims_alpha, o_counts)
-print "Sort by Jaccard similarity"
-print_sorted_pairs(j_sims, o_counts)
-print "Sort by dice_coefficient"
-print_sorted_pairs(d_sims, o_counts)
-
-# graph the results (and save to file)
-
-
-def get_similarity(wlist,functionlist=[cos_sim,jaccard_similarity,dice_coefficient]):
-  stemmed_words = [tw_stemmer(w) for w in wlist]
-  different_wids = set([word2wid[x] for x in stemmed_words]) #stemming might create duplicates; remove them
-  print("making the pairs")
-  similar_wid_pairs = make_pairs(different_wids)
-  (o_counts, co_counts, N) = read_counts("/afs/inf.ed.ac.uk/group/teaching/anlp/asgn3/counts", different_wids)
-  print("Creating word vectors...")
-  different_vectors = create_ppmi_vectors(different_wids, o_counts, co_counts, N)
-  results = []
-  for method in functionlist:
-    results.append(('{}'.format(method),{(wid0,wid1): method(different_vectors[wid0],different_vectors[wid1]) 
-          for (wid0,wid1) in similar_wid_pairs}))
-  return results
-
-def plot_results(results,legend):
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
-
-  
-  for r in results:
-    to_plot = pd.DataFrame(get_plot_data(r,o_counts))
-    ax.plot(range(len(to_plot[0])),to_plot[0])
-    ax.set_xticklabels(to_plot[1],rotation='vertical')
-  plt.legend(legend)
-  plt.show()
+##------------------------- END INVESTIGATIONS -----------------------------##
